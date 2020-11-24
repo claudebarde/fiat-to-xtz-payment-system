@@ -137,6 +137,8 @@ contract("Fiat to XTZ Payment System", () => {
       console.log(error);
     }
 
+    storage = await contract_instance.storage();
+
     // checks if recipients have been added
     aliceRecipients = await storage.recipients.get(alice.pkh);
     const newRecipients = [];
@@ -182,6 +184,8 @@ contract("Fiat to XTZ Payment System", () => {
       console.log(error);
     }
 
+    storage = await contract_instance.storage();
+
     const aliceNewRecipients = await storage.recipients.get(alice.pkh);
 
     assert.equal(aliceNewRecipients[1].size, aliceRecipients[1].size - 1);
@@ -189,5 +193,41 @@ contract("Fiat to XTZ Payment System", () => {
     aliceIsRecipient = await aliceNewRecipients[1].get(alice.pkh);
 
     assert.isUndefined(aliceIsRecipient);
+  });
+
+  it("should allow a client to update the amount of one of the recipients", async () => {
+    const aliceRecipients = await storage.recipients.get(alice.pkh);
+    const bobAmount = await aliceRecipients[1].get(bob.pkh);
+    const bobNewAmount = bobAmount.toNumber() + 123;
+
+    try {
+      const op = await contract_instance.methods
+        .update_recipient(bob.pkh, bobNewAmount)
+        .send();
+      await op.confirmation();
+    } catch (error) {
+      console.log(error);
+    }
+
+    storage = await contract_instance.storage();
+
+    const aliceUpdatedRecipients = await storage.recipients.get(alice.pkh);
+    const bobUpdatedAmount = await aliceUpdatedRecipients[1].get(bob.pkh);
+
+    assert.equal(bobUpdatedAmount, bobNewAmount);
+  });
+
+  it("should allow clients to update their own address", async () => {
+    try {
+      const op = await contract_instance.methods.update_client(bob.pkh).send();
+      await op.confirmation();
+    } catch (error) {
+      console.log(error);
+    }
+    // Alice shouldn't be registered as a client anymore
+    storage = await contract_instance.storage();
+
+    const isAliceClient = await storage.recipients.get(alice.pkh);
+    assert.isUndefined(isAliceClient);
   });
 });
