@@ -46,7 +46,7 @@ let process_payment (params, s: oracle_val * storage): operation list * storage 
       then (failwith "UNKNOWN_CURRENCY_PAIR": operation list * storage)
       else
         (* Prepares list of operations *)
-        let total_amount = Tezos.amount in
+        let total_amount = Tezos.amount - s.tx_fee in
         let list_of_operations: operation list * tez =
           Map.fold (fun ((ops, total_amount), recipient: (operation list * tez) * (address * nat)) -> 
             (* Amount in fiat is padded with 6 zeros to avoid decimal *)
@@ -63,9 +63,8 @@ let process_payment (params, s: oracle_val * storage): operation list * storage 
 
               (tx :: ops, total_amount - amount_to_send)
           ) client.1 (([]: operation list), total_amount) in
-        let operations: operation list = list_of_operations.0 in
         (* Sends back remaining tez if some is left *)
-        if Tezos.amount > 0tez
+        if total_amount > 0tez
         then
           let account: unit contract = 
             match (Tezos.get_contract_opt Tezos.source: unit contract option) with
@@ -73,8 +72,10 @@ let process_payment (params, s: oracle_val * storage): operation list * storage 
             | Some a -> a in
 
           let tx = Tezos.transaction unit total_amount account in
-          operations = tx :: operations in
+          let operations = tx :: list_of_operations.0 in
 
-          
-        operations, 
-        { s with pending_payments = Set.remove Tezos.source s.pending_payments }
+          operations, 
+          { s with pending_payments = Set.remove Tezos.source s.pending_payments }
+        else
+          list_of_operations.0, 
+          { s with pending_payments = Set.remove Tezos.source s.pending_payments }
