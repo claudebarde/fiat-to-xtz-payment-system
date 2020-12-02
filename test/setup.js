@@ -21,7 +21,6 @@ module.exports = async () => {
   contract_instance = await CONTRACT.deployed();
   // this code bypasses Truffle config to be able to have different signers
   // until I find how to do it directly with Truffle
-  await Tezos.setProvider({ rpc: "http://localhost:8732" });
   await signerFactory(alice.sk);
   /**
    * Display the current contract address for debugging purposes

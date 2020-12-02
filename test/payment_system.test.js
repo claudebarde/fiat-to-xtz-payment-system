@@ -10,6 +10,28 @@ contract("Fiat to XTZ Payment System", () => {
     signerFactory,
     Tezos;
 
+  let fetchRecipientsBalances = async (pkh, storage) => {
+    const balancePromises = [];
+    const recipients = [];
+    const recipientsBalances = {};
+    const userRecipients = await storage.recipients.get(pkh);
+    let totalAmountInFiat = 0;
+    userRecipients[1].forEach(async (v, k) => {
+      // updates the total amount to be sent
+      totalAmountInFiat += v.toNumber();
+      // records initial balances for these accounts
+      //bobRecipientsInitialBalances[k] = await Tezos.tz.getBalance(k);
+      balancePromises.push(Tezos.tz.getBalance(k));
+      recipients.push(k);
+    });
+    const resolvedBalancePromises = await Promise.all(balancePromises);
+    recipients.forEach((r, i) => {
+      recipientsBalances[r] = resolvedBalancePromises[i].toNumber();
+    });
+
+    return { totalAmountInFiat, recipientsBalances };
+  };
+
   before(async () => {
     const config = await setup();
     storage = config.storage;
@@ -19,15 +41,6 @@ contract("Fiat to XTZ Payment System", () => {
     oracle_instance = config.oracle_instance;
     signerFactory = config.signerFactory;
     Tezos = config.Tezos;
-
-    /*try {
-      const op = await contract_instance.methods
-        .update_oracle(oracle_address)
-        .send();
-      await op.confirmation();
-    } catch (error) {
-      console.log(error);
-    }*/
   });
 
   it("Alice should be the admin", () => {
@@ -41,9 +54,12 @@ contract("Fiat to XTZ Payment System", () => {
     signerFactory(bob.sk);
 
     let err = "";
+    let fee = 1;
 
     try {
-      let op = await contract_instance.methods.update_tx_fee(5).send();
+      let op = await contract_instance.methods
+        .update_tx_fee(fee * 10 ** 6)
+        .send();
       await op.confirmation();
     } catch (error) {
       err = error.message;
@@ -54,7 +70,9 @@ contract("Fiat to XTZ Payment System", () => {
     signerFactory(alice.sk);
 
     try {
-      let op = await contract_instance.methods.update_tx_fee(1).send();
+      let op = await contract_instance.methods
+        .update_tx_fee(fee * 10 ** 6)
+        .send();
       await op.confirmation();
     } catch (error) {
       console.log(error);
@@ -62,7 +80,7 @@ contract("Fiat to XTZ Payment System", () => {
 
     storage = await contract_instance.storage();
 
-    assert.equal(storage.tx_fee.toNumber(), 1);
+    assert.equal(storage.tx_fee.toNumber(), fee * 10 ** 6);
   });
 
   it("admin should be able to update the oracle address", async () => {
@@ -120,9 +138,9 @@ contract("Fiat to XTZ Payment System", () => {
   });
 
   it("should let clients add recipients", async () => {
-    let recipient1 = { 0: alice.pkh, 1: 200 };
-    let recipient2 = { 0: bob.pkh, 1: 344 };
-    let recipient3 = { 0: eve.pkh, 1: 111 };
+    let recipient1 = { 0: alice.pkh, 1: 2 };
+    let recipient2 = { 0: bob.pkh, 1: 3 };
+    let recipient3 = { 0: eve.pkh, 1: 4 };
 
     // confirms Alice has no recipient yet
     let aliceRecipients = await storage.recipients.get(alice.pkh);
@@ -171,13 +189,13 @@ contract("Fiat to XTZ Payment System", () => {
 
   it("should allow a client to remove one of the recipients", async () => {
     const aliceRecipients = await storage.recipients.get(alice.pkh);
-    let aliceIsRecipient = await aliceRecipients[1].get(alice.pkh);
+    let bobIsRecipient = await aliceRecipients[1].get(bob.pkh);
 
-    assert.isDefined(aliceIsRecipient);
+    assert.isDefined(bobIsRecipient);
 
     try {
       const op = await contract_instance.methods
-        .remove_recipient(alice.pkh)
+        .remove_recipient(bob.pkh)
         .send();
       await op.confirmation();
     } catch (error) {
@@ -190,19 +208,19 @@ contract("Fiat to XTZ Payment System", () => {
 
     assert.equal(aliceNewRecipients[1].size, aliceRecipients[1].size - 1);
 
-    aliceIsRecipient = await aliceNewRecipients[1].get(alice.pkh);
+    bobIsRecipient = await aliceNewRecipients[1].get(bob.pkh);
 
-    assert.isUndefined(aliceIsRecipient);
+    assert.isUndefined(bobIsRecipient);
   });
 
   it("should allow a client to update the amount of one of the recipients", async () => {
     const aliceRecipients = await storage.recipients.get(alice.pkh);
-    const bobAmount = await aliceRecipients[1].get(bob.pkh);
-    const bobNewAmount = bobAmount.toNumber() + 123;
+    const eveAmount = await aliceRecipients[1].get(eve.pkh);
+    const eveNewAmount = eveAmount.toNumber() + 2;
 
     try {
       const op = await contract_instance.methods
-        .update_recipient(bob.pkh, bobNewAmount)
+        .update_recipient(eve.pkh, eveNewAmount)
         .send();
       await op.confirmation();
     } catch (error) {
@@ -212,9 +230,9 @@ contract("Fiat to XTZ Payment System", () => {
     storage = await contract_instance.storage();
 
     const aliceUpdatedRecipients = await storage.recipients.get(alice.pkh);
-    const bobUpdatedAmount = await aliceUpdatedRecipients[1].get(bob.pkh);
+    const eveUpdatedAmount = await aliceUpdatedRecipients[1].get(eve.pkh);
 
-    assert.equal(bobUpdatedAmount, bobNewAmount);
+    assert.equal(eveUpdatedAmount, eveNewAmount);
   });
 
   it("should allow clients to update their own address", async () => {
@@ -229,5 +247,58 @@ contract("Fiat to XTZ Payment System", () => {
 
     const isAliceClient = await storage.recipients.get(alice.pkh);
     assert.isUndefined(isAliceClient);
+  });
+
+  it("should allow Alice to send a payment", async () => {
+    signerFactory(bob.sk);
+
+    let err = "";
+    const bobInitialBalance = await Tezos.tz.getBalance(bob.pkh);
+    const {
+      totalAmountInFiat,
+      recipientsBalances: bobRecipientsInitialBalances
+    } = await fetchRecipientsBalances(bob.pkh, storage);
+    const bobRecipients = await storage.recipients.get(bob.pkh);
+    //console.log("total amount in fiat:", totalAmountInFiat);
+    //console.log(bobRecipientsInitialBalances);
+
+    try {
+      const op = await contract_instance.methods
+        .request_payment([["unit"]])
+        .send();
+      await op.confirmation();
+    } catch (error) {
+      err = error.message;
+    }
+
+    // should fail because no funds where sent
+    assert.equal(err, "NO_AMOUNT");
+
+    // estimates total amount
+    const oracleStorage = await oracle_instance.storage();
+    const currency_pair = await oracleStorage.get(`XTZ-${bobRecipients[0]}`);
+    const totalAmountInXtz =
+      currency_pair[1] * totalAmountInFiat + storage.tx_fee.toNumber();
+
+    console.log("total amount in xtz:", totalAmountInXtz);
+
+    try {
+      const op = await contract_instance.methods
+        .request_payment([["unit"]])
+        .send({ amount: totalAmountInXtz, mutez: true });
+      await op.confirmation();
+    } catch (error) {
+      console.log(error);
+    }
+
+    /*storage = await contract_instance.storage();
+
+    const bobNewBalance = await Tezos.tz.getBalance(bob.pkh);
+    const {
+      recipientsBalances: bobRecipientsNewBalances
+    } = await fetchRecipientsBalances(bob.pkh, storage);
+
+    console.log(bobInitialBalance.toNumber(), bobNewBalance.toNumber());
+    console.log(bobRecipientsInitialBalances, bobRecipientsNewBalances);*/
   });
 });

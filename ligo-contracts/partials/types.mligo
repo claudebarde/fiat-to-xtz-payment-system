@@ -3,7 +3,7 @@ type storage =
 {
   (* client => [currency * recipient => amount] *)
   recipients: (address, string * (address, nat) map) big_map; 
-  pending_payments: address set;
+  pending_payments: (address, tez) map;
   tx_fee: tez;
   admin: address;
   oracle: address;
