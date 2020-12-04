@@ -14,4 +14,3 @@ let main (p, s: entrypoints * storage): operation list * storage =
   | Process_payment n -> process_payment (n, s)
   | Update_tx_fee n -> ([]: operation list), update_tx_fee (n, s)
   | Update_oracle n -> ([]: operation list), update_oracle (n, s)
-  | Pause n -> ([]: operation list), pause s

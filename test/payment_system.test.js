@@ -325,5 +325,7 @@ contract("Fiat to XTZ Payment System", () => {
           expectedSentXtz
       );
     }
+
+    assert.isFalse(storage.paused);
   });
 });

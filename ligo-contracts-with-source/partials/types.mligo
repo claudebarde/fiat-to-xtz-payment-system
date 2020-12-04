@@ -1,15 +1,12 @@
-type pending_payment = (address * tez) option
-
 type storage = 
 [@layout:comb]
 {
   (* client => [currency * recipient => amount] *)
   recipients: (address, string * (address, nat) map) big_map; 
-  pending_payment: pending_payment;
+  pending_payments: (address, tez) map;
   tx_fee: tez;
   admin: address;
   oracle: address;
-  paused: bool;
 }
 
 type oracle_val = string * (timestamp * nat)
@@ -25,4 +22,3 @@ type entrypoints =
 | Process_payment of oracle_val
 | Update_tx_fee of tez
 | Update_oracle of address
-| Pause of unit
