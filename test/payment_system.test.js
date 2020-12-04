@@ -13,14 +13,16 @@ contract("Fiat to XTZ Payment System", () => {
   let fetchRecipientsBalances = async (pkh, storage) => {
     const balancePromises = [];
     const recipients = [];
+    const recipientsFiat = {};
     const recipientsBalances = {};
     const userRecipients = await storage.recipients.get(pkh);
     let totalAmountInFiat = 0;
     userRecipients[1].forEach(async (v, k) => {
       // updates the total amount to be sent
       totalAmountInFiat += v.toNumber();
+      // records recipients amounts in fiat
+      recipientsFiat[k] = v.toNumber();
       // records initial balances for these accounts
-      //bobRecipientsInitialBalances[k] = await Tezos.tz.getBalance(k);
       balancePromises.push(Tezos.tz.getBalance(k));
       recipients.push(k);
     });
@@ -29,7 +31,7 @@ contract("Fiat to XTZ Payment System", () => {
       recipientsBalances[r] = resolvedBalancePromises[i].toNumber();
     });
 
-    return { totalAmountInFiat, recipientsBalances };
+    return { totalAmountInFiat, recipientsBalances, recipientsFiat };
   };
 
   before(async () => {
@@ -249,7 +251,7 @@ contract("Fiat to XTZ Payment System", () => {
     assert.isUndefined(isAliceClient);
   });
 
-  it("should allow Alice to send a payment", async () => {
+  it("should allow Bob to send a payment", async () => {
     signerFactory(bob.sk);
 
     let err = "";
@@ -280,7 +282,7 @@ contract("Fiat to XTZ Payment System", () => {
     const totalAmountInXtz =
       currency_pair[1] * totalAmountInFiat + storage.tx_fee.toNumber();
 
-    console.log("total amount in xtz:", totalAmountInXtz);
+    // console.log("total amount in xtz:", totalAmountInXtz);
 
     try {
       const op = await contract_instance.methods
@@ -291,14 +293,37 @@ contract("Fiat to XTZ Payment System", () => {
       console.log(error);
     }
 
-    /*storage = await contract_instance.storage();
+    storage = await contract_instance.storage();
 
     const bobNewBalance = await Tezos.tz.getBalance(bob.pkh);
     const {
-      recipientsBalances: bobRecipientsNewBalances
+      recipientsBalances: bobRecipientsNewBalances,
+      recipientsFiat
     } = await fetchRecipientsBalances(bob.pkh, storage);
 
-    console.log(bobInitialBalance.toNumber(), bobNewBalance.toNumber());
-    console.log(bobRecipientsInitialBalances, bobRecipientsNewBalances);*/
+    // console.log(bobInitialBalance.toNumber(), bobNewBalance.toNumber());
+    // console.log(bobRecipientsInitialBalances, bobRecipientsNewBalances);
+
+    assert.isBelow(
+      bobNewBalance.toNumber(),
+      bobInitialBalance.toNumber() - totalAmountInXtz
+    );
+    assert.equal(
+      bobRecipientsInitialBalances.length,
+      bobRecipientsNewBalances.length
+    );
+
+    const bobRecipientsAddresses = Object.keys(bobRecipientsNewBalances);
+
+    for (let i = 0; i < bobRecipientsAddresses.length; i++) {
+      const expectedSentXtz =
+        recipientsFiat[bobRecipientsAddresses[i]] * currency_pair[1];
+      // console.log(`expected XTZ: ${expectedSentXtz} to ${bobRecipientsAddresses[i]}`);
+      assert.equal(
+        bobRecipientsNewBalances[bobRecipientsAddresses[i]],
+        bobRecipientsInitialBalances[bobRecipientsAddresses[i]] +
+          expectedSentXtz
+      );
+    }
   });
 });

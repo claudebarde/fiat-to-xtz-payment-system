@@ -140,7 +140,7 @@ let request_payment (s: storage): operation list * storage =
         let op = Tezos.transaction param 0tez contract in
 
         (* Updates pending payments and returns storage *)
-        [op], { s with pending_payments = Map.add Tezos.sender Tezos.amount s.pending_payments }
+        [op], { s with pending_payments = Map.add Tezos.sender (Tezos.amount - s.tx_fee) s.pending_payments }
 
 (* Value for payment is returned from the oracle *)
 let process_payment (params, s: oracle_val * storage): operation list * storage = 
@@ -162,8 +162,8 @@ let process_payment (params, s: oracle_val * storage): operation list * storage 
       let total_amount = 
         match Map.find_opt Tezos.source s.pending_payments with
         | None -> (failwith "UNRECOGNIZED_OPERATION": tez)
-        | Some t -> t - s.tx_fee in
-      let list_of_operations: operation list * tez =
+        | Some t -> t in
+      let xtz_dispatch: operation list * tez =
         Map.fold (fun ((ops, payment), recipient: (operation list * tez) * (address * nat)) -> 
           let amount_to_send: tez = (recipient.1 * exchange_rate) * 0.000_001tez in
           if payment - amount_to_send < 0tez
@@ -178,21 +178,23 @@ let process_payment (params, s: oracle_val * storage): operation list * storage 
 
             (tx :: ops, payment - amount_to_send)
         ) client.1 (([]: operation list), total_amount) in
+        let list_of_operations = xtz_dispatch.0 in
+        let remainder = xtz_dispatch.1 in
       (* Sends back remaining tez if some is left *)
-      if total_amount > 0tez
+      if remainder > 0tez
       then
         let account: unit contract = 
           match (Tezos.get_contract_opt Tezos.source: unit contract option) with
           | None -> (failwith "INCORRECT_ACCOUNT": unit contract)
           | Some a -> a in
 
-        let tx = Tezos.transaction unit total_amount account in
-        let operations = tx :: list_of_operations.0 in
+        let tx = Tezos.transaction unit remainder account in
+        let operations = tx :: list_of_operations in
 
         operations, 
         { s with pending_payments = Map.remove Tezos.source s.pending_payments }
       else
-        list_of_operations.0, 
+        list_of_operations, 
         { s with pending_payments = Map.remove Tezos.source s.pending_payments }
 # 5 "./ligo-contracts/main.mligo" 2
 
