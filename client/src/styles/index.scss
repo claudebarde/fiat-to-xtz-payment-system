@@ -1,0 +1,124 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+
+$assetPath: "../../public/images";
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  color: rgba(31, 41, 55, 1);
+  font-family: "Poppins", sans-serif;
+  color: white;
+}
+
+body {
+  background-image: url(#{$assetPath}/clark-van-der-beken-xApC8DIiD54-unsplash.jpg);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+a {
+  color: rgb(0, 100, 200);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:visited {
+    color: rgb(0, 80, 160);
+  }
+}
+
+p {
+  padding: 0px;
+  margin: 5px;
+}
+
+$button-info-background: #91e2ec;
+$button-info-border: #0380b3;
+
+.button {
+  padding: 15px 25px;
+  margin: 10px 0px;
+  font-size: 1rem;
+  cursor: pointer;
+  position: relative;
+  outline: none;
+  font-weight: bold;
+
+  &:before,
+  &:after {
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    content: "";
+    height: 100%;
+    width: 100%;
+    transition: 0.3s;
+  }
+
+  &:before {
+    bottom: -10px;
+    left: -10px;
+    z-index: -1;
+  }
+
+  &:after {
+    content: attr(data-text);
+    font-size: 1rem;
+    display: grid;
+    place-items: center;
+    top: -10px;
+    right: -10px;
+    z-index: 1;
+    letter-spacing: 3px;
+  }
+
+  &:hover:before {
+    bottom: -3px;
+    left: -3px;
+  }
+
+  &:hover:after {
+    top: -3px;
+    right: -3px;
+  }
+
+  &.info {
+    background-color: $button-info-background;
+    border: solid 3px $button-info-border;
+    color: $button-info-border;
+
+    &:before,
+    &:after {
+      border: solid 3px $button-info-border;
+      background-color: $button-info-background;
+    }
+
+    &:hover:after {
+      background-color: $button-info-border;
+      color: white;
+    }
+  }
+
+  &.success {
+    background-color: #a7f3d0;
+    border: solid 3px #12b981;
+    color: #12b981;
+
+    &:before,
+    &:after {
+      border: solid 3px #12b981;
+      background-color: #a7f3d0;
+    }
+
+    &:hover:after {
+      background-color: #12b981;
+      color: white;
+    }
+  }
+}

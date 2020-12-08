@@ -1,4 +1,5 @@
-const { alice } = require('./scripts/sandbox/accounts');
+const { alice } = require("./scripts/sandbox/accounts");
+const faucetKey = require("./faucet-key");
 
 module.exports = {
   // see <http://truffleframework.com/docs/advanced/configuration>
@@ -12,13 +13,20 @@ module.exports = {
       type: "tezos"
     },
     carthagenet: {
-      host: "https://carthagenet.smartpy.io",
+      host: "https://testnet-tezos.giganode.io",
       port: 443,
       network_id: "*",
       type: "tezos"
     },
+    delphinet: {
+      host: "https://delphinet-tezos.giganode.io",
+      port: 443,
+      network_id: "*",
+      type: "tezos",
+      secretKey: faucetKey
+    },
     mainnet: {
-      host: "https://mainnet.smartpy.io",
+      host: "https://mainnet-tezos.giganode.io",
       port: 443,
       network_id: "*",
       type: "tezos"
