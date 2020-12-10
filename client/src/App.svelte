@@ -5,10 +5,38 @@
   import store from "./store";
   import { BeaconWallet } from "@taquito/beacon-wallet";
   import { NetworkType } from "@airgap/beacon-sdk";
+  import BigNumber from "bignumber.js";
+  import UserInterface from "./UserInterface.svelte";
 
   const connectWallet = async () => {
     const wallet = new BeaconWallet({
-      name: "Tezos Payment System"
+      name: "Tezos Payment System",
+      eventHandlers: {
+        BROADCAST_REQUEST_SENT: {
+          handler: async data => {
+            console.log("broadcast request:", data);
+          }
+        },
+        PERMISSION_REQUEST_SENT: {
+          // setting up the handler method will disable the default one
+          handler: async data => {
+            console.log("permission request");
+          }
+        },
+        // To enable your own wallet connection success message
+        PERMISSION_REQUEST_SUCCESS: {
+          // setting up the handler method will disable the default one
+          handler: async data => {
+            console.log("wallet connected");
+          }
+        },
+        PAIR_SUCCESS: {
+          // setting up the handler method will disable the default one
+          handler: async data => {
+            console.log("permission request");
+          }
+        }
+      }
     });
     let networkType = NetworkType.CUSTOM;
     if ($store.network === "testnet") {
@@ -17,16 +45,36 @@
     await wallet.requestPermissions({ network: { type: networkType } });
     const userAddress = await wallet.getPKH();
 
+    // checks if user is registered in the contract
+    const recipients = await $store.contractStorage.recipients.get(userAddress);
+    if (recipients) {
+      store.updateUserCurrency(recipients[0]);
+
+      const addresses: { address: string; amount: number }[] = [];
+      recipients[1].forEach((val: BigNumber, key: string) => {
+        addresses.push({ address: key, amount: val.toNumber() });
+      });
+      store.updateRecipients(addresses);
+    }
+
+    // updates the state of the dapp
     $store.Tezos.setWalletProvider(wallet);
     store.updateUserAddress(userAddress);
     store.updateWallet(wallet);
   };
 
+  const disconnectWallet = async () => {
+    $store.wallet.client.destroy();
+    store.updateUserAddress(undefined);
+    store.updateWallet(undefined);
+  };
+
   onMount(async () => {
-    const network = "local";
-    const tezos = new TezosToolkit($store.rpcUrl[network]);
+    const tezos = new TezosToolkit($store.rpcUrl[$store.network]);
     store.updateTezos(tezos);
-    const contract = await tezos.contract.at($store.contractAddress[network]);
+    const contract = await tezos.contract.at(
+      $store.contractAddress[$store.network]
+    );
     store.updateContract(contract);
     const storage = await contract.storage();
     store.updateContractStorage(storage);
@@ -40,42 +88,6 @@
     place-items: center;
   }
 
-  .containers-wrapper {
-    width: 40%;
-  }
-
-  .container {
-    background-color: rgba(255, 255, 255, 0.2);
-    padding: 2rem;
-    margin: 1rem;
-    border-radius: 2rem;
-    position: relative;
-    z-index: 1;
-    backdrop-filter: blur(30px);
-    border: solid 2px transparent;
-    background-clip: padding-box;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-    h1 {
-      font-size: 2rem;
-      margin: 0px;
-      margin-bottom: 10px;
-      font-weight: normal;
-      text-shadow: 1px 1px #333;
-    }
-
-    h3 {
-      font-size: 1.3rem;
-      font-weight: normal;
-      margin: 0px;
-      margin-bottom: 20px;
-      text-shadow: 1px 1px #333;
-    }
-  }
-
   .taquito-logo {
     position: absolute;
     bottom: 10px;
@@ -86,15 +98,34 @@
       height: 60px;
     }
   }
+
+  .slide-top {
+    margin-bottom: -100px;
+    -webkit-animation: slide-top 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation: slide-top 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
+
+  .slide-bottom {
+    margin-top: -100px;
+    -webkit-animation: slide-bottom 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation: slide-bottom 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
 </style>
 
 <main>
   <div class="containers-wrapper">
-    <div class="container" in:fly={{ x: -1000, duration: 2500, delay: 200 }}>
+    <div
+      class={`container ${$store.userAddress ? 'slide-top' : ''}`}
+      in:fly={{ x: -1000, duration: 2500, delay: 200 }}>
       <h1>Fiat to XTZ</h1>
       <h1>Payment System</h1>
     </div>
-    <div class="container" in:fly={{ x: 1000, duration: 2500, delay: 200 }}>
+    {#if $store.userAddress}
+      <UserInterface />
+    {/if}
+    <div
+      class={`container ${$store.userAddress ? 'slide-bottom' : ''}`}
+      in:fly={{ x: 1000, duration: 2500, delay: 200 }}>
       {#if !$store.userAddress}
         <h3>Start here and connect your wallet</h3>
         <button
@@ -102,7 +133,14 @@
           data-text="Connect"
           on:click={connectWallet}>Connect</button>
       {:else}
-        <p>Connected!</p>
+        <h3>
+          Connected as
+          {$store.userAddress.slice(0, 7) + '...' + $store.userAddress.slice(-7)}
+        </h3>
+        <button
+          class="button error"
+          data-text="Disconnect"
+          on:click={disconnectWallet}>Disconnect</button>
       {/if}
     </div>
   </div>

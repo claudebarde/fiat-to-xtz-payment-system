@@ -11,6 +11,8 @@ interface State {
   Tezos: TezosToolkit;
   wallet: BeaconWallet;
   userAddress: string | undefined;
+  userCurrency: string | undefined;
+  userRecipients: { address: string; amount: number }[] | null;
   network: "mainnet" | "testnet" | "local";
   contractAddress: { mainnet: string; testnet: string; local: string };
   rpcUrl: { mainnet: string; testnet: string; local: string };
@@ -22,6 +24,8 @@ const initialState: State = {
   Tezos: undefined,
   wallet: undefined,
   userAddress: undefined,
+  userCurrency: undefined,
+  userRecipients: null,
   network: "testnet",
   contractAddress: {
     mainnet: "",
@@ -53,6 +57,14 @@ const state = {
   },
   updateContractStorage: (storage: any) => {
     store.update(store => ({ ...store, contractStorage: storage }));
+  },
+  updateUserCurrency: (currency: string | undefined) => {
+    store.update(store => ({ ...store, userCurrency: currency }));
+  },
+  updateRecipients: (
+    recipients: { address: string; amount: number }[] | null
+  ) => {
+    store.update(store => ({ ...store, userRecipients: recipients }));
   }
 };
 

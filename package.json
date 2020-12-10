@@ -6,7 +6,7 @@
     "@snowpack/app-template-svelte-typescript": "^1.12.3",
     "@taquito/beacon-wallet": "^7.1.0-preview.8",
     "@taquito/signer": "^7.0.1-beta.0",
-    "@taquito/taquito": "^7.1.0-preview.8"
+    "@taquito/taquito": "^7.1.0-beta.0"
   },
   "devDependencies": {
     "ganache-cli": "^6.10.0-tezos.1"
