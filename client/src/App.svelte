@@ -44,6 +44,7 @@
     }
     await wallet.requestPermissions({ network: { type: networkType } });
     const userAddress = await wallet.getPKH();
+    store.updateUserAddress(userAddress);
 
     // checks if user is registered in the contract
     const recipients = await $store.contractStorage.recipients.get(userAddress);
@@ -59,7 +60,6 @@
 
     // updates the state of the dapp
     $store.Tezos.setWalletProvider(wallet);
-    store.updateUserAddress(userAddress);
     store.updateWallet(wallet);
   };
 
