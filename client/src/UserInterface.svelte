@@ -4,7 +4,23 @@
   import store from "./store";
 
   let selectedCurrency = "";
+  let selectedCurrencyError = false;
   let accountAddress = "";
+  let accountAddressError = false;
+  let loadingCreateAccount = false;
+
+  const createAccount = async () => {
+    if (!selectedCurrency) {
+      selectedCurrencyError = true;
+    } else if (!accountAddress) {
+      accountAddressError = true;
+    } else {
+      selectedCurrencyError = false;
+      accountAddressError = false;
+      // confirms creation of new client account
+      loadingCreateAccount = true;
+    }
+  };
 
   onMount(() => {
     if ($store.userAddress) accountAddress = $store.userAddress;
@@ -57,7 +73,7 @@
   {#if $store.userRecipients === null}
     <h3>Create a new account</h3>
     <div class="currencies">
-      <span>Currency:</span>
+      <span style={selectedCurrencyError ? 'color:red' : ''}>Currency:</span>
       <label
         for="currency-USD"
         id={selectedCurrency === 'USD' ? 'selected' : ''}><input
@@ -65,18 +81,25 @@
           name="currency"
           id="currency-USD"
           value="USD"
-          bind:group={selectedCurrency} />
+          bind:group={selectedCurrency}
+          on:click={() => (selectedCurrencyError = false)} />
         USD</label>
     </div>
     <div>
-      <span>Address:</span>
-      <input type="text" bind:value={accountAddress} />
+      <span style={accountAddressError ? 'color:red' : ''}>Address:</span>
+      <input
+        type="text"
+        bind:value={accountAddress}
+        on:focus={() => (accountAddressError = false)} />
     </div>
     <br />
     <div>
       <button
         class={`button info small ${!selectedCurrency && !accountAddress ? 'disabled' : ''}`}
-        data-text="Confirm">Confirm</button>
+        class:loading={loadingCreateAccount}
+        data-text={loadingCreateAccount ? 'Waiting' : 'Confirm'}
+        disabled={loadingCreateAccount}
+        on:click={createAccount}>{loadingCreateAccount ? 'Waiting' : 'Confirm'}</button>
     </div>
   {:else}
     <div>Recipients here</div>
