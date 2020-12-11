@@ -15,9 +15,10 @@ interface State {
   userRecipients: { address: string; amount: number }[] | null;
   network: "mainnet" | "testnet" | "local";
   contractAddress: { mainnet: string; testnet: string; local: string };
+  oracleAddress: { mainnet: string; testnet: string; local: string };
   rpcUrl: { mainnet: string; testnet: string; local: string };
   contractStorage: any;
-  contract: ContractAbstraction<ContractProvider> | undefined;
+  contract: ContractAbstraction<Wallet> | undefined;
 }
 
 const initialState: State = {
@@ -30,7 +31,12 @@ const initialState: State = {
   contractAddress: {
     mainnet: "",
     testnet: "KT1WoCE1tiSj668Cgz3qhxG318Lp65HvnxgW",
-    local: "KT1N1JE5vEUZGDHfPjeBHpYLeaAJhGUWfWQV"
+    local: "KT1FMy8m3QMhvgiCg3vWBpG8ZhpbTSwcQX9F"
+  },
+  oracleAddress: {
+    mainnet: "",
+    testnet: "",
+    local: "KT1VLuyQJqSuEkxnsNfxKKUHqxgeLQ8kJdsD"
   },
   rpcUrl: {
     mainnet: "",
@@ -52,7 +58,7 @@ const state = {
   updateUserAddress: (address: string) => {
     store.update(store => ({ ...store, userAddress: address }));
   },
-  updateContract: (instance: ContractAbstraction<ContractProvider>) => {
+  updateContract: (instance: ContractAbstraction<Wallet>) => {
     store.update(store => ({ ...store, contract: instance }));
   },
   updateContractStorage: (storage: any) => {

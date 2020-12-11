@@ -1,30 +1,40 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { fly } from "svelte/transition";
-  import store from "./store";
+  import store from "../store";
+  import AddRecipient from "./AddRecipient.svelte";
+  import Recipients from "./Recipients.svelte";
 
   let selectedCurrency = "";
   let selectedCurrencyError = false;
-  let accountAddress = "";
-  let accountAddressError = false;
   let loadingCreateAccount = false;
+  let createAccountError = false;
+  let opHash = "";
 
   const createAccount = async () => {
+    createAccountError = false;
     if (!selectedCurrency) {
       selectedCurrencyError = true;
-    } else if (!accountAddress) {
-      accountAddressError = true;
     } else {
       selectedCurrencyError = false;
-      accountAddressError = false;
-      // confirms creation of new client account
       loadingCreateAccount = true;
+      // confirms creation of new client account
+      try {
+        const op = await $store.contract.methods
+          .add_client(selectedCurrency)
+          .send();
+        opHash = op.opHash;
+        await op.confirmation();
+        const newStorage = $store.contract.storage();
+        store.updateContractStorage(newStorage);
+        store.updateRecipients([]);
+      } catch (error) {
+        console.log(error);
+        createAccountError = true;
+      } finally {
+        loadingCreateAccount = false;
+      }
     }
   };
-
-  onMount(() => {
-    if ($store.userAddress) accountAddress = $store.userAddress;
-  });
 </script>
 
 <style lang="scss">
@@ -53,20 +63,6 @@
       display: none;
     }
   }
-
-  input[type="text"] {
-    background-color: rgba(255, 255, 255, 0.2);
-    border: none;
-    padding: 5px;
-    margin: 5px;
-    outline: none;
-    transition: 0.4s;
-    color: #0380b3;
-
-    &:focus {
-      background-color: rgba(255, 255, 255, 0.5);
-    }
-  }
 </style>
 
 <div class="container" in:fly={{ x: -1000, duration: 2500, delay: 1000 }}>
@@ -85,23 +81,31 @@
           on:click={() => (selectedCurrencyError = false)} />
         USD</label>
     </div>
-    <div>
-      <span style={accountAddressError ? 'color:red' : ''}>Address:</span>
-      <input
-        type="text"
-        bind:value={accountAddress}
-        on:focus={() => (accountAddressError = false)} />
-    </div>
+    {#if createAccountError}
+      <div><span style="color:red">An error has occurred</span></div>
+    {/if}
+    {#if opHash}
+      <div>
+        <a
+          href={`https://${$store.network === 'testnet' ? 'delphi.' : ''}tzkt.io/${opHash}`}
+          target="_blank"
+          rel="noopener noreferrer nofollower">View transaction</a>
+      </div>
+    {/if}
     <br />
     <div>
       <button
-        class={`button info small ${!selectedCurrency && !accountAddress ? 'disabled' : ''}`}
+        class={`button info small ${!selectedCurrency ? 'disabled' : ''}`}
         class:loading={loadingCreateAccount}
         data-text={loadingCreateAccount ? 'Waiting' : 'Confirm'}
         disabled={loadingCreateAccount}
         on:click={createAccount}>{loadingCreateAccount ? 'Waiting' : 'Confirm'}</button>
     </div>
+  {:else if $store.userRecipients.length === 0}
+    <div>You currently have 0 recipients.</div>
+    <br />
+    <AddRecipient />
   {:else}
-    <div>Recipients here</div>
+    <Recipients />
   {/if}
 </div>

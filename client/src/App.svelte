@@ -6,7 +6,7 @@
   import { BeaconWallet } from "@taquito/beacon-wallet";
   import { NetworkType } from "@airgap/beacon-sdk";
   import BigNumber from "bignumber.js";
-  import UserInterface from "./UserInterface.svelte";
+  import UserInterface from "./components/UserInterface.svelte";
 
   const connectWallet = async () => {
     const wallet = new BeaconWallet({
@@ -35,12 +35,20 @@
           handler: async data => {
             console.log("permission request");
           }
+        },
+        BROADCAST_REQUEST_SUCCESS: {
+          // setting up the handler method will disable the default one
+          handler: async data => {
+            console.log("broadcast request success");
+          }
         }
       }
     });
     let networkType = NetworkType.CUSTOM;
     if ($store.network === "testnet") {
       networkType = NetworkType.DELPHINET;
+    } else if ($store.network === "mainnet") {
+      networkType = NetworkType.MAINNET;
     }
     await wallet.requestPermissions({ network: { type: networkType } });
     const userAddress = await wallet.getPKH();
@@ -72,7 +80,7 @@
   onMount(async () => {
     const tezos = new TezosToolkit($store.rpcUrl[$store.network]);
     store.updateTezos(tezos);
-    const contract = await tezos.contract.at(
+    const contract = await tezos.wallet.at(
       $store.contractAddress[$store.network]
     );
     store.updateContract(contract);
