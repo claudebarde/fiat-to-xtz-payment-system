@@ -20,7 +20,6 @@
       loadingAddRecipient = false;
       return;
     }
-    console.log(+recipientAmount);
     // wrong amount format
     if (isNaN(+recipientAmount) || +recipientAmount === 0) {
       amountError = true;
@@ -37,8 +36,10 @@
       store.updateContractStorage(newStorage);
       store.updateRecipients([
         { address: recipientAddress, amount: +recipientAmount },
-        ...$store.userRecipients
+        ...$store.userRecipients,
       ]);
+      recipientAddress = "";
+      recipientAmount = "";
     } catch (error) {
       console.log(error);
       addRecipientError = true;

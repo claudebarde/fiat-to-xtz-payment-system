@@ -34,8 +34,8 @@ const initialState: State = {
     local: "KT1FMy8m3QMhvgiCg3vWBpG8ZhpbTSwcQX9F"
   },
   oracleAddress: {
-    mainnet: "",
-    testnet: "",
+    mainnet: "KT1AdbYiPYb5hDuEuVrfxmFehtnBCXv4Np7r",
+    testnet: "KT1LWDzd6mFhjjnb65a1PjHDNZtFKBieTQKH",
     local: "KT1VLuyQJqSuEkxnsNfxKKUHqxgeLQ8kJdsD"
   },
   rpcUrl: {

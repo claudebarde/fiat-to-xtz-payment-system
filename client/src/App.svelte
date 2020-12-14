@@ -12,37 +12,49 @@
     const wallet = new BeaconWallet({
       name: "Tezos Payment System",
       eventHandlers: {
-        BROADCAST_REQUEST_SENT: {
-          handler: async data => {
-            console.log("broadcast request:", data);
-          }
-        },
         PERMISSION_REQUEST_SENT: {
           // setting up the handler method will disable the default one
-          handler: async data => {
+          handler: async (data) => {
             console.log("permission request");
-          }
+          },
         },
         // To enable your own wallet connection success message
         PERMISSION_REQUEST_SUCCESS: {
           // setting up the handler method will disable the default one
-          handler: async data => {
+          handler: async (data) => {
             console.log("wallet connected");
-          }
+          },
+        },
+        OPERATION_REQUEST_SENT: {
+          // setting up the handler method will disable the default one
+          handler: async (data) => {
+            console.log("request sent", data);
+          },
+        },
+        OPERATION_REQUEST_SUCCESS: {
+          // setting up the handler method will disable the default one
+          handler: async (data) => {
+            console.log("request success", data);
+          },
         },
         PAIR_SUCCESS: {
           // setting up the handler method will disable the default one
-          handler: async data => {
+          handler: async (data) => {
             console.log("permission request");
-          }
+          },
+        },
+        BROADCAST_REQUEST_SENT: {
+          handler: async (data) => {
+            console.log("broadcast request:", data);
+          },
         },
         BROADCAST_REQUEST_SUCCESS: {
           // setting up the handler method will disable the default one
-          handler: async data => {
+          handler: async (data) => {
             console.log("broadcast request success");
-          }
-        }
-      }
+          },
+        },
+      },
     });
     let networkType = NetworkType.CUSTOM;
     if ($store.network === "testnet") {

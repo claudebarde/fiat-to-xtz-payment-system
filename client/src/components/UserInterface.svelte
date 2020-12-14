@@ -27,6 +27,9 @@
         const newStorage = $store.contract.storage();
         store.updateContractStorage(newStorage);
         store.updateRecipients([]);
+        store.updateUserCurrency(selectedCurrency);
+        selectedCurrency = "";
+        opHash = "";
       } catch (error) {
         console.log(error);
         createAccountError = true;

@@ -2,6 +2,8 @@
   import store from "../store";
   import AddRecipient from "./AddRecipient.svelte";
   import RemoveRecipient from "./RemoveRecipient.svelte";
+  import EditRecipient from "./EditRecipient.svelte";
+  import SendPayment from "./SendPayment.svelte";
 
   let selected = 1;
 </script>
@@ -31,9 +33,16 @@
   }
 
   .main {
+    width: 80%;
     margin-top: calc(1rem + 30px);
     height: 180px;
     overflow: auto;
+  }
+
+  .recipients {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 70% 15% 15%;
   }
 </style>
 
@@ -68,6 +77,12 @@
     on:click={() => (selected = 5)}>
     <i class="far fa-paper-plane" />
   </div>
+  <div
+    class="tab"
+    id={selected === 6 ? 'selected' : ''}
+    on:click={() => (selected = 6)}>
+    <i class="fas fa-history" />
+  </div>
 </div>
 
 <div class="main">
@@ -78,13 +93,15 @@
     </div>
     <br />
     {#each $store.userRecipients as recipient}
-      <div>
-        <a
-          href={`https://${$store.network === 'testnet' ? 'delphi.' : ''}tzkt.io/${recipient.address}`}
-          target="_blank"
-          rel="noopener noreferrer nofollower">{recipient.address.slice(0, 12) + '...' + recipient.address.slice(-12)}</a>:
-        {$store.userCurrency}
-        {recipient.amount}
+      <div class="recipients">
+        <div>
+          <a
+            href={`https://${$store.network === 'testnet' ? 'delphi.' : ''}tzkt.io/${recipient.address}`}
+            target="_blank"
+            rel="noopener noreferrer nofollower">{recipient.address.slice(0, 12) + '...' + recipient.address.slice(-12)}</a>
+        </div>
+        <div>{$store.userCurrency}</div>
+        <div>{recipient.amount}</div>
       </div>
     {/each}
   {:else if selected === 2}
@@ -92,8 +109,10 @@
   {:else if selected === 3}
     <RemoveRecipient />
   {:else if selected === 4}
-    <div>Edit recipient</div>
+    <EditRecipient />
   {:else if selected === 5}
-    <div>Send payment</div>
+    <SendPayment />
+  {:else if selected === 6}
+    <div>Payment History</div>
   {/if}
 </div>
