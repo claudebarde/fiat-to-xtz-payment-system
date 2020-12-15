@@ -1,6 +1,52 @@
 <script lang="ts">
   import { fly, fade } from "svelte/transition";
   import store from "../store";
+
+  const download = () => {
+    if ($store.payments) {
+      const rows = [
+        [
+          "hash",
+          "date",
+          "timestamp",
+          "total amount in XTZ",
+          "total amount in fiat",
+          "from",
+          "fee",
+          "exchange rate",
+          "recipients",
+        ],
+      ];
+
+      $store.payments.forEach((p) => {
+        rows.push([
+          p.opHash,
+          `${
+            p.date.getMonth() + 1
+          }/${p.date.getDate()}/${p.date.getFullYear()}`,
+          p.timestamp.toString(),
+          p.totalAmount.toString(),
+          `${p.fiat} ${(p.totalAmount / p.exchangeRate.rate).toFixed(2)}`,
+          $store.userAddress,
+          p.fee.toString(),
+          p.exchangeRate.rate.toString(),
+          p.dispatchedAmounts.map((r) => `${r.to}:${r.amount}`).join("|"),
+        ]);
+      });
+
+      const csvContent =
+        "data:text/csv;charset=utf-8," +
+        rows.map((r) => r.join(",")).join("\n");
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "payments_history.csv");
+      document.body.appendChild(link); // Required for FF
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 </script>
 
 <style lang="scss">
@@ -34,6 +80,12 @@
     background-color: #66d7eb8f;
     overflow: auto;
     padding: 20px 0px;
+
+    .links {
+      width: 50%;
+      display: flex;
+      justify-content: space-around;
+    }
   }
 
   .payment-row {
@@ -51,11 +103,13 @@
     class="container payment-history"
     transition:fly={{ y: -1000, duration: 900 }}>
     <h3>Payments History</h3>
-    <div
-      style="cursor:pointer"
-      on:click={() => store.showPaymentsHistory(false)}>
-      Back
-      <i class="fas fa-undo" />
+    <div class="links">
+      <span
+        style="cursor:pointer"
+        on:click={() => store.showPaymentsHistory(false)}>Back
+        <i class="fas fa-undo" /></span>
+      <span style="cursor:pointer" on:click={download}>Download
+        <i class="fas fa-file-download" /></span>
     </div>
     <br />
     {#each $store.payments as payment}
@@ -66,8 +120,8 @@
           for XTZ
           {(payment.totalAmount / 10 ** 6).toFixed(2)}
           /
-          {payment.exchangeRate.pair.split('-')[1]}
-          {payment.totalAmount / payment.exchangeRate.rate}
+          {payment.fiat}
+          {(payment.totalAmount / payment.exchangeRate.rate).toFixed(2)}
         </div>
         <div>
           &nbsp;&nbsp; Exchange rate:
