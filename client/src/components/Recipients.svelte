@@ -4,6 +4,7 @@
   import RemoveRecipient from "./RemoveRecipient.svelte";
   import EditRecipient from "./EditRecipient.svelte";
   import SendPayment from "./SendPayment.svelte";
+  import PaymentHistory from "./PaymentHistory.svelte";
 
   let selected = 1;
 </script>
@@ -37,6 +38,7 @@
     margin-top: calc(1rem + 30px);
     height: 180px;
     overflow: auto;
+    position: relative;
   }
 
   .recipients {
@@ -113,6 +115,6 @@
   {:else if selected === 5}
     <SendPayment />
   {:else if selected === 6}
-    <div>Payment History</div>
+    <PaymentHistory />
   {/if}
 </div>

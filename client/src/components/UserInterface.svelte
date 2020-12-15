@@ -68,7 +68,9 @@
   }
 </style>
 
-<div class="container" in:fly={{ x: -1000, duration: 2500, delay: 1000 }}>
+<div
+  class="container"
+  transition:fly={{ x: -1000, duration: 2500, delay: 1000 }}>
   {#if $store.userRecipients === null}
     <h3>Create a new account</h3>
     <div class="currencies">

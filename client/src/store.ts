@@ -1,25 +1,7 @@
 import { writable } from "svelte/store";
-import {
-  TezosToolkit,
-  ContractAbstraction,
-  Wallet,
-  ContractProvider
-} from "@taquito/taquito";
+import { TezosToolkit, ContractAbstraction, Wallet } from "@taquito/taquito";
 import { BeaconWallet } from "@taquito/beacon-wallet";
-
-interface State {
-  Tezos: TezosToolkit;
-  wallet: BeaconWallet;
-  userAddress: string | undefined;
-  userCurrency: string | undefined;
-  userRecipients: { address: string; amount: number }[] | null;
-  network: "mainnet" | "testnet" | "local";
-  contractAddress: { mainnet: string; testnet: string; local: string };
-  oracleAddress: { mainnet: string; testnet: string; local: string };
-  rpcUrl: { mainnet: string; testnet: string; local: string };
-  contractStorage: any;
-  contract: ContractAbstraction<Wallet> | undefined;
-}
+import { State, Payment } from "./types";
 
 const initialState: State = {
   Tezos: undefined,
@@ -40,11 +22,13 @@ const initialState: State = {
   },
   rpcUrl: {
     mainnet: "",
-    testnet: "https://delphinet-tezos.giganode.io",
+    testnet: "https://testnet-tezos.giganode.io",
     local: "http://localhost:8732"
   },
   contractStorage: undefined,
-  contract: undefined
+  contract: undefined,
+  payments: [],
+  fullPaymentsHistory: false
 };
 
 const store = writable(initialState);
@@ -71,6 +55,12 @@ const state = {
     recipients: { address: string; amount: number }[] | null
   ) => {
     store.update(store => ({ ...store, userRecipients: recipients }));
+  },
+  updatePayments: (payments: Payment[]) => {
+    store.update(store => ({ ...store, payments }));
+  },
+  showPaymentsHistory: (show: boolean) => {
+    store.update(store => ({ ...store, fullPaymentsHistory: show }));
   }
 };
 

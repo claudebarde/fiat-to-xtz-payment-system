@@ -7,6 +7,7 @@
   import { NetworkType } from "@airgap/beacon-sdk";
   import BigNumber from "bignumber.js";
   import UserInterface from "./components/UserInterface.svelte";
+  import FullPaymentsHistory from "./components/FullPaymentsHistory.svelte";
 
   const connectWallet = async () => {
     const wallet = new BeaconWallet({
@@ -106,6 +107,7 @@
     height: 100vh;
     display: grid;
     place-items: center;
+    position: relative;
   }
 
   .taquito-logo {
@@ -145,7 +147,7 @@
     {/if}
     <div
       class={`container ${$store.userAddress ? 'slide-bottom' : ''}`}
-      in:fly={{ x: 1000, duration: 2500, delay: 200 }}>
+      transition:fly={{ x: 1000, duration: 2500, delay: 200 }}>
       {#if !$store.userAddress}
         <h3>Start here and connect your wallet</h3>
         <button
@@ -173,3 +175,6 @@
       src="images/Built-with-round.png"
       alt="built-with-taquito" /></a>
 </div>
+{#if $store.fullPaymentsHistory}
+  <FullPaymentsHistory />
+{/if}
