@@ -32,7 +32,13 @@
         try {
             const op = await $store.contract.methods
                 .request_payment([["unit"]])
-                .send({ amount: totalAmountInXtz, mutez: true });
+                .send({
+                    amount:
+                        totalAmountInXtz +
+                        $store.contractStorage.tx_fee.toNumber(),
+                    mutez: true,
+                });
+            console.log(op.opHash);
             await op.confirmation();
         } catch (error) {
             console.log(error);
