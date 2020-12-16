@@ -26,4 +26,5 @@ export interface State {
   contract: ContractAbstraction<Wallet> | undefined;
   payments: Payment[];
   fullPaymentsHistory: boolean;
+  error: { show: boolean; msg: string };
 }

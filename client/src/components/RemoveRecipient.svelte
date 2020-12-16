@@ -23,6 +23,7 @@
       store.updateRecipients(newRecipients);
     } catch (error) {
       console.log(error);
+      store.updateError(true);
     } finally {
       loadingRemoveRecipient = false;
     }

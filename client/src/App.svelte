@@ -8,6 +8,7 @@
   import BigNumber from "bignumber.js";
   import UserInterface from "./components/UserInterface.svelte";
   import FullPaymentsHistory from "./components/FullPaymentsHistory.svelte";
+  import ErrorToast from "./components/ErrorToast.svelte";
 
   const connectWallet = async () => {
     const wallet = new BeaconWallet({
@@ -177,4 +178,7 @@
 </div>
 {#if $store.fullPaymentsHistory}
   <FullPaymentsHistory />
+{/if}
+{#if $store.error.show}
+  <ErrorToast />
 {/if}

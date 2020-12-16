@@ -35,6 +35,7 @@
             recipientAmount = "";
         } catch (error) {
             console.log(error);
+            store.updateError(true);
         } finally {
             loadingRecipientToEdit = false;
         }

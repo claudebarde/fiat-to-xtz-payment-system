@@ -43,6 +43,7 @@
     } catch (error) {
       console.log(error);
       addRecipientError = true;
+      store.updateError(true);
     } finally {
       loadingAddRecipient = false;
     }

@@ -36,6 +36,7 @@
             await op.confirmation();
         } catch (error) {
             console.log(error);
+            store.updateError(true);
         } finally {
             loadingSendPayment = false;
         }

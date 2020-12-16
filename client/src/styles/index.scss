@@ -194,11 +194,11 @@ $button-error-border: lighten(#c54fa0, 10);
 .container {
   background-color: rgba(255, 255, 255, 0.2);
   margin: 1rem;
+  border: solid 2px transparent;
   border-radius: 2rem;
   position: relative;
   z-index: 1;
   backdrop-filter: blur(30px);
-  border: solid 2px transparent;
   background-clip: padding-box;
   display: flex;
   flex-direction: column;

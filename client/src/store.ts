@@ -28,7 +28,8 @@ const initialState: State = {
   contractStorage: undefined,
   contract: undefined,
   payments: [],
-  fullPaymentsHistory: false
+  fullPaymentsHistory: false,
+  error: { show: false, msg: "" }
 };
 
 const store = writable(initialState);
@@ -61,6 +62,20 @@ const state = {
   },
   showPaymentsHistory: (show: boolean) => {
     store.update(store => ({ ...store, fullPaymentsHistory: show }));
+  },
+  updateError: (error: boolean, msg?: string) => {
+    store.update(store => ({ ...store, error: { show: error, msg } }));
+    // autocloses the error toast
+    if (error === true) {
+      setTimeout(
+        () =>
+          store.update(store => ({
+            ...store,
+            error: { show: false, msg: "" }
+          })),
+        3000
+      );
+    }
   }
 };
 
