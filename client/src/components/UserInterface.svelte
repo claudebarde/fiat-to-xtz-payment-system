@@ -47,11 +47,6 @@
     justify-content: center;
     align-items: center;
 
-    div {
-      margin: 5px 20px;
-      cursor: pointer;
-    }
-
     label {
       cursor: pointer;
       border: solid 2px transparent;

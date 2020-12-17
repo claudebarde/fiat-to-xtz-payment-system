@@ -26,3 +26,4 @@ type entrypoints =
 | Update_tx_fee of tez
 | Update_oracle of address
 | Pause of unit
+| Withdraw of unit

@@ -280,9 +280,13 @@ contract("Fiat to XTZ Payment System", () => {
     const oracleStorage = await oracle_instance.storage();
     const currency_pair = await oracleStorage.get(`XTZ-${bobRecipients[0]}`);
     const totalAmountInXtz =
-      currency_pair[1] * totalAmountInFiat + storage.tx_fee.toNumber();
+      Math.round(
+        ((totalAmountInFiat * 10 ** 6) / currency_pair[1].toNumber()) * 10 ** 6
+      ) + storage.tx_fee.toNumber();
 
-    // console.log("total amount in xtz:", totalAmountInXtz);
+    /*console.log("total amount in fiat:", totalAmountInFiat);
+    console.log("exchange rate:", currency_pair[1].toNumber());
+    console.log("total amount in xtz:", totalAmountInXtz);*/
 
     try {
       const op = await contract_instance.methods
@@ -316,9 +320,14 @@ contract("Fiat to XTZ Payment System", () => {
     const bobRecipientsAddresses = Object.keys(bobRecipientsNewBalances);
 
     for (let i = 0; i < bobRecipientsAddresses.length; i++) {
-      const expectedSentXtz =
-        recipientsFiat[bobRecipientsAddresses[i]] * currency_pair[1];
-      // console.log(`expected XTZ: ${expectedSentXtz} to ${bobRecipientsAddresses[i]}`);
+      const expectedSentXtz = Math.floor(
+        ((recipientsFiat[bobRecipientsAddresses[i]] * 10 ** 6) /
+          currency_pair[1]) *
+          10 ** 6
+      );
+      /*console.log(
+        `expected XTZ: ${expectedSentXtz} to ${bobRecipientsAddresses[i]}`
+      );*/
       assert.equal(
         bobRecipientsNewBalances[bobRecipientsAddresses[i]],
         bobRecipientsInitialBalances[bobRecipientsAddresses[i]] +

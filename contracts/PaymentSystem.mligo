@@ -29,6 +29,7 @@ type entrypoints =
 | Update_tx_fee of tez
 | Update_oracle of address
 | Pause of unit
+| Withdraw of unit
 # 2 "./ligo-contracts/main.mligo" 2
 
 # 1 "./ligo-contracts/./partials/client_features.mligo" 1
@@ -114,6 +115,19 @@ let update_oracle (new_oracle, s: address * storage): storage =
 
 (* Admin pauses/unpauses the contract *)
 let pause (s: storage): storage = { s with paused = not s.paused }
+
+(* Admin withdraw income from transaction fee *)
+let withdraw (s: storage): operation list * storage =
+  if Tezos.sender <> s.admin
+  then (failwith "NOT_AN_ADMIN": operation list * storage)
+  else
+    let account: unit contract = 
+      match (Tezos.get_contract_opt (s.admin): unit contract option) with
+      | None -> (failwith "INCORRECT_ACCOUNT": unit contract)
+      | Some a -> a in
+    let op = Tezos.transaction unit Tezos.balance account in
+
+    [op], s
 # 4 "./ligo-contracts/main.mligo" 2
 
 # 1 "./ligo-contracts/./partials/payment.mligo" 1
@@ -181,7 +195,8 @@ let process_payment (params, s: oracle_val * storage): operation list * storage 
         let total_amount = pending_payment.1 in
         let xtz_dispatch: operation list * tez =
           Map.fold (fun ((ops, payment), recipient: (operation list * tez) * (address * nat)) -> 
-            let amount_to_send: tez = (recipient.1 * exchange_rate) * 0.000_001tez in
+            let amount_in_fiat: nat = recipient.1 in
+            let amount_to_send: tez = ((amount_in_fiat * 1_000_000_000_000n) / exchange_rate) * 0.000_001tez in
             if payment - amount_to_send < 0tez
             then (failwith "INSUFFICIENT_BALANCE": operation list * tez)
             else 
@@ -197,7 +212,7 @@ let process_payment (params, s: oracle_val * storage): operation list * storage 
           let list_of_operations = xtz_dispatch.0 in
           let remainder = xtz_dispatch.1 in
         (* Sends back remaining tez if some is left *)
-        if remainder > 0tez
+        if remainder > 0.0001tez
         then
           let account: unit contract = 
             match (Tezos.get_contract_opt pending_payment.0: unit contract option) with
@@ -226,3 +241,4 @@ let main (p, s: entrypoints * storage): operation list * storage =
   | Update_tx_fee n -> ([]: operation list), update_tx_fee (n, s)
   | Update_oracle n -> ([]: operation list), update_oracle (n, s)
   | Pause n -> ([]: operation list), pause s
+  | Withdraw n -> withdraw s

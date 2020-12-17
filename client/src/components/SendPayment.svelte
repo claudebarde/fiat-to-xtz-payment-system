@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
     import store from "../store";
+    import { fromFiatToXTZ } from "../utils";
 
     let totalAmountInFiat = 0;
     let totalAmountInXtz = 0;
@@ -21,8 +22,10 @@
         );
         if (exchangeRate && exchangeRate.hasOwnProperty("computedPrice")) {
             totalAmountInFiat = totalAmount;
-            totalAmountInXtz =
-                totalAmount * exchangeRate.computedPrice.toNumber();
+            totalAmountInXtz = fromFiatToXTZ(
+                exchangeRate.computedPrice.toNumber(),
+                totalAmount * 10 ** 6
+            );
         }
     };
 
@@ -82,7 +85,7 @@
         {$store.userCurrency}
         {totalAmountInFiat}
         / XTZ
-        {(totalAmountInXtz / 10 ** 6).toFixed(2)}
+        {totalAmountInXtz.toFixed(2)}
     </div>
     <br />
     <button

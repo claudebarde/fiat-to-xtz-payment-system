@@ -62,7 +62,8 @@ let process_payment (params, s: oracle_val * storage): operation list * storage 
         let total_amount = pending_payment.1 in
         let xtz_dispatch: operation list * tez =
           Map.fold (fun ((ops, payment), recipient: (operation list * tez) * (address * nat)) -> 
-            let amount_to_send: tez = (recipient.1 * exchange_rate) * 0.000_001tez in
+            let amount_in_fiat: nat = recipient.1 in
+            let amount_to_send: tez = ((amount_in_fiat * 1_000_000_000_000n) / exchange_rate) * 0.000_001tez in
             if payment - amount_to_send < 0tez
             then (failwith "INSUFFICIENT_BALANCE": operation list * tez)
             else 
@@ -78,7 +79,7 @@ let process_payment (params, s: oracle_val * storage): operation list * storage 
           let list_of_operations = xtz_dispatch.0 in
           let remainder = xtz_dispatch.1 in
         (* Sends back remaining tez if some is left *)
-        if remainder > 0tez
+        if remainder > 0.0001tez
         then
           let account: unit contract = 
             match (Tezos.get_contract_opt pending_payment.0: unit contract option) with

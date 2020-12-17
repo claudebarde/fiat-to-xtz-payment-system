@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import store from "../store";
     import { Payment } from "../types";
+    import { fromFiatToXTZ } from "../utils";
 
     let payments: Payment[] = [];
     let loadingPayments = true;
@@ -109,7 +110,6 @@
     .payment-history {
         display: flex;
         flex-direction: column;
-        justify-content: center;
         align-items: center;
     }
 
@@ -147,7 +147,7 @@
                     {(payment.totalAmount / 10 ** 6).toFixed(2)}
                     /
                     {payment.fiat}
-                    {payment.totalAmount / payment.exchangeRate.rate}
+                    {fromFiatToXTZ(payment.exchangeRate.rate, payment.totalAmount)}
                 </div>
                 <div>({payment.dispatchedAmounts.length})</div>
             </div>

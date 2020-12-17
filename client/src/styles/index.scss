@@ -206,6 +206,10 @@ $button-error-border: lighten(#c54fa0, 10);
   align-items: center;
   height: 250px;
 
+  &.payment-history {
+    justify-content: flex-start;
+  }
+
   h1 {
     font-size: 2rem;
     margin: 0px;
