@@ -157,44 +157,46 @@
 </style>
 
 <main>
-  <div class="containers-wrapper">
-    <div
-      class={`container ${$store.userAddress ? 'slide-top' : ''}`}
-      in:fly={{ x: -1000, duration: 2500, delay: 200 }}>
-      <h1>Fiat to XTZ</h1>
-      <h1>Payment System</h1>
+  <div class="wrapper">
+    <div class="containers-wrapper">
+      <div
+        class={`container ${$store.userAddress ? 'shrink-container' : ''}`}
+        in:fly={{ x: -1000, duration: 2500, delay: 200 }}>
+        <h1>Fiat to XTZ</h1>
+        <h1>Payment System</h1>
+      </div>
+      <div
+        class={`container ${$store.userAddress ? 'shrink-container' : ''}`}
+        in:fly={{ x: 1000, duration: 2500, delay: 200 }}>
+        {#if !$store.userAddress}
+          <h3>Start here and connect your wallet</h3>
+          <button
+            class="button info"
+            data-text="Connect"
+            on:click={connectWallet}>Connect</button>
+          {#if process.env.NODE_ENV === 'development'}
+            <br />
+            <div
+              style="font-size:0.8rem;cursor:pointer"
+              on:click={connectTezBridge}>
+              Connect with TezBridge
+            </div>
+          {/if}
+        {:else}
+          <h3>
+            Connected as
+            {$store.userAddress.slice(0, 7) + '...' + $store.userAddress.slice(-7)}
+          </h3>
+          <button
+            class="button error"
+            data-text="Disconnect"
+            on:click={disconnectWallet}>Disconnect</button>
+        {/if}
+      </div>
     </div>
     {#if $store.userAddress}
       <UserInterface />
     {/if}
-    <div
-      class={`container ${$store.userAddress ? 'slide-bottom' : ''}`}
-      transition:fly={{ x: 1000, duration: 2500, delay: 200 }}>
-      {#if !$store.userAddress}
-        <h3>Start here and connect your wallet</h3>
-        <button
-          class="button info"
-          data-text="Connect"
-          on:click={connectWallet}>Connect</button>
-        {#if process.env.NODE_ENV === 'development'}
-          <br />
-          <div
-            style="font-size:0.8rem;cursor:pointer"
-            on:click={connectTezBridge}>
-            Connect with TezBridge
-          </div>
-        {/if}
-      {:else}
-        <h3>
-          Connected as
-          {$store.userAddress.slice(0, 7) + '...' + $store.userAddress.slice(-7)}
-        </h3>
-        <button
-          class="button error"
-          data-text="Disconnect"
-          on:click={disconnectWallet}>Disconnect</button>
-      {/if}
-    </div>
   </div>
 </main>
 <div class="taquito-logo" in:fly={{ y: 100, duration: 500, delay: 2500 }}>

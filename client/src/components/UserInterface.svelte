@@ -64,47 +64,49 @@
   }
 </style>
 
-<div class="container" in:fly={{ x: -1000, duration: 2500, delay: 1000 }}>
-  {#if $store.userRecipients === null}
-    <h3>Create a new account</h3>
-    <div class="currencies">
-      <span style={selectedCurrencyError ? 'color:red' : ''}>Currency:</span>
-      <label
-        for="currency-USD"
-        id={selectedCurrency === 'USD' ? 'selected' : ''}><input
-          type="radio"
-          name="currency"
-          id="currency-USD"
-          value="USD"
-          bind:group={selectedCurrency}
-          on:click={() => (selectedCurrencyError = false)} />
-        USD</label>
-    </div>
-    {#if createAccountError}
-      <div><span style="color:red">An error has occurred</span></div>
-    {/if}
-    {#if opHash}
-      <div>
-        <a
-          href={`https://${$store.network === 'testnet' ? 'delphi.' : ''}tzkt.io/${opHash}`}
-          target="_blank"
-          rel="noopener noreferrer nofollower">View transaction</a>
+<div class="containers-wrapper">
+  <div class="container" in:fly={{ x: 1000, duration: 2500, delay: 200 }}>
+    {#if $store.userRecipients === null}
+      <h3>Create a new account</h3>
+      <div class="currencies">
+        <span style={selectedCurrencyError ? 'color:red' : ''}>Currency:</span>
+        <label
+          for="currency-USD"
+          id={selectedCurrency === 'USD' ? 'selected' : ''}><input
+            type="radio"
+            name="currency"
+            id="currency-USD"
+            value="USD"
+            bind:group={selectedCurrency}
+            on:click={() => (selectedCurrencyError = false)} />
+          USD</label>
       </div>
+      {#if createAccountError}
+        <div><span style="color:red">An error has occurred</span></div>
+      {/if}
+      {#if opHash}
+        <div>
+          <a
+            href={`https://${$store.network === 'testnet' ? 'delphi.' : ''}tzkt.io/${opHash}`}
+            target="_blank"
+            rel="noopener noreferrer nofollower">View transaction</a>
+        </div>
+      {/if}
+      <br />
+      <div>
+        <button
+          class={`button info small ${!selectedCurrency ? 'disabled' : ''}`}
+          class:loading={loadingCreateAccount}
+          data-text={loadingCreateAccount ? 'Waiting' : 'Confirm'}
+          disabled={loadingCreateAccount}
+          on:click={createAccount}>{loadingCreateAccount ? 'Waiting' : 'Confirm'}</button>
+      </div>
+    {:else if $store.userRecipients.length === 0}
+      <div>You currently have 0 recipients.</div>
+      <br />
+      <AddRecipient />
+    {:else}
+      <Recipients />
     {/if}
-    <br />
-    <div>
-      <button
-        class={`button info small ${!selectedCurrency ? 'disabled' : ''}`}
-        class:loading={loadingCreateAccount}
-        data-text={loadingCreateAccount ? 'Waiting' : 'Confirm'}
-        disabled={loadingCreateAccount}
-        on:click={createAccount}>{loadingCreateAccount ? 'Waiting' : 'Confirm'}</button>
-    </div>
-  {:else if $store.userRecipients.length === 0}
-    <div>You currently have 0 recipients.</div>
-    <br />
-    <AddRecipient />
-  {:else}
-    <Recipients />
-  {/if}
+  </div>
 </div>
