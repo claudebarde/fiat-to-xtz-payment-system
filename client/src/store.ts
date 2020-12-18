@@ -12,7 +12,7 @@ const initialState: State = {
   network: "testnet",
   contractAddress: {
     mainnet: "",
-    testnet: "KT1WoCE1tiSj668Cgz3qhxG318Lp65HvnxgW",
+    testnet: "KT1PzwqdVRUXjVG821Foit1YxXJs28CQHNwu",
     local: "KT1FMy8m3QMhvgiCg3vWBpG8ZhpbTSwcQX9F"
   },
   oracleAddress: {

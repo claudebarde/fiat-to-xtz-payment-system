@@ -5,5 +5,5 @@ export const fromXTZtoFiat = (exchangeRate: number, xtz: number): number => {
 
 export const fromFiatToXTZ = (exchangeRate: number, fiat: number): number => {
   // returns XTZ in mutez
-  return fiat / exchangeRate;
+  return Math.ceil((fiat / exchangeRate) * 10 ** 6);
 };

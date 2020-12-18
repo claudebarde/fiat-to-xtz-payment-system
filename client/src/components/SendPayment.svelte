@@ -85,7 +85,7 @@
         {$store.userCurrency}
         {totalAmountInFiat}
         / XTZ
-        {totalAmountInXtz.toFixed(2)}
+        {(totalAmountInXtz / 10 ** 6).toFixed(2)}
     </div>
     <br />
     <button

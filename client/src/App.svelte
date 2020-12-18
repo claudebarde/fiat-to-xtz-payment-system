@@ -4,6 +4,7 @@
   import { TezosToolkit } from "@taquito/taquito";
   import store from "./store";
   import { BeaconWallet } from "@taquito/beacon-wallet";
+  import { TezBridgeWallet } from "@taquito/tezbridge-wallet";
   import { NetworkType } from "@airgap/beacon-sdk";
   import BigNumber from "bignumber.js";
   import UserInterface from "./components/UserInterface.svelte";
@@ -85,6 +86,26 @@
     store.updateWallet(wallet);
   };
 
+  const connectTezBridge = async () => {
+    const wallet = new TezBridgeWallet();
+    const userAddress = await wallet.getPKH();
+    store.updateUserAddress(userAddress);
+    // checks if user is registered in the contract
+    const recipients = await $store.contractStorage.recipients.get(userAddress);
+    if (recipients) {
+      store.updateUserCurrency(recipients[0]);
+
+      const addresses: { address: string; amount: number }[] = [];
+      recipients[1].forEach((val: BigNumber, key: string) => {
+        addresses.push({ address: key, amount: val.toNumber() });
+      });
+      store.updateRecipients(addresses);
+    }
+
+    // updates the state of the dapp
+    $store.Tezos.setWalletProvider(wallet);
+  };
+
   const disconnectWallet = async () => {
     $store.wallet.client.destroy();
     store.updateUserAddress(undefined);
@@ -155,6 +176,14 @@
           class="button info"
           data-text="Connect"
           on:click={connectWallet}>Connect</button>
+        {#if process.env.NODE_ENV === 'development'}
+          <br />
+          <div
+            style="font-size:0.8rem;cursor:pointer"
+            on:click={connectTezBridge}>
+            Connect with TezBridge
+          </div>
+        {/if}
       {:else}
         <h3>
           Connected as
