@@ -1,6 +1,7 @@
 <script lang="ts">
   import { fly, fade } from "svelte/transition";
   import store from "../store";
+  import { fromXTZtoFiat } from "../utils";
 
   const download = () => {
     if ($store.payments) {
@@ -117,11 +118,11 @@
         <div>
           <i class="fas fa-minus" />&nbsp; 1 payment on
           {payment.date.getMonth() + 1}/{payment.date.getDate()}/{payment.date.getFullYear()}
-          for XTZ
+          for
           {(payment.totalAmount / 10 ** 6).toFixed(2)}
-          /
+          XTZ /
+          {fromXTZtoFiat(payment.exchangeRate.rate, payment.totalAmount)}
           {payment.fiat}
-          {(payment.totalAmount / payment.exchangeRate.rate).toFixed(2)}
         </div>
         <div>
           &nbsp;&nbsp; Exchange rate:
@@ -130,9 +131,9 @@
           for 1 XTZ
         </div>
         <div>
-          &nbsp;&nbsp; Network fee: XTZ
+          &nbsp;&nbsp; Network fee:
           {payment.fee / 10 ** 6}
-          ({payment.fiat}
+          XTZ ({payment.fiat}
           {((payment.fee * payment.exchangeRate.rate) / 10 ** 12).toFixed(2)})
         </div>
         <div>
@@ -140,10 +141,9 @@
           {#each payment.dispatchedAmounts as tx}
             <div class="recipient">
               <div>
-                XTZ
                 {(tx.amount / 10 ** 6).toFixed(2)}
-                ({payment.fiat}
-                {(tx.amount / payment.exchangeRate.rate).toFixed(2)}) to
+                XTZ ({fromXTZtoFiat(payment.exchangeRate.rate, tx.amount)}
+                {payment.fiat}) to
                 {tx.to.slice(0, 10) + '...' + tx.to.slice(-10)}
               </div>
             </div>
