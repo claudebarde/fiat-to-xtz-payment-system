@@ -36,7 +36,6 @@
   .main {
     width: 80%;
     margin-top: calc(1rem + 30px);
-    height: 180px;
     overflow: auto;
     position: relative;
   }

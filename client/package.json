@@ -41,10 +41,10 @@
 		"webpack-dev-server": "^3.11.0"
 	},
 	"dependencies": {
-		"@taquito/beacon-wallet": "^7.1.0-beta.0",
-		"@taquito/taquito": "^7.1.0-beta.0",
+		"@taquito/beacon-wallet": "^7.1.1-preview.0",
+		"@taquito/taquito": "^7.1.1-preview.0",
 		"@taquito/tezbridge-wallet": "^7.1.0-beta.0",
-		"@taquito/utils": "^7.1.0-beta.0",
+		"@taquito/utils": "^7.1.1-preview.0",
 		"serve": "^11.3.2"
 	},
 	"browserslist": [
